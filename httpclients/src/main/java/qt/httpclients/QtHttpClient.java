@@ -407,7 +407,7 @@ public class QtHttpClient {
 			
 			CloseableHttpResponse response = httpclient.execute(httpget, context);
 			try {
-				qhr = getHttpResult(context, response);
+				qhr = getHttpResult(request,context, response);
 				httpget.abort();
 			} finally {
 				response.close();
@@ -473,8 +473,8 @@ public class QtHttpClient {
 	public QtHttpResult post(QtHttpRequest request) throws ClientProtocolException, IOException {
 		defaultKeepAliveTimeout = request.keepAlive;
 		String url = request.url;
-		ContentType contentType = request.postContentType;
-		List<NameValuePair> nvps = request.nvps;
+		ContentType contentType = request.contentType;
+		List<NameValuePair> nvps = request.formData;
 		HttpHost otherProxyHttpHost = null;
 		if (null != request.proxy) {
 			otherProxyHttpHost = new HttpHost(request.proxy.getHostName(), request.proxy.getPort());
@@ -527,7 +527,7 @@ public class QtHttpClient {
 			}else{
 				// Post form
 				if (null != nvps && !nvps.isEmpty()) {
-					httppost.setEntity(new UrlEncodedFormEntity(nvps, request.postCharset));
+					httppost.setEntity(new UrlEncodedFormEntity(nvps, request.charset));
 				}
 				// Post text,json,xml...
 				if (null != request.postData && !request.postData.isEmpty()) {
@@ -546,7 +546,7 @@ public class QtHttpClient {
 
 			CloseableHttpResponse response = httpclient.execute(httppost);
 			try {
-				qhr = getHttpResult(context, response);
+				qhr = getHttpResult(request,context, response);
 				httppost.abort();
 			} finally {
 				response.close();
@@ -599,7 +599,7 @@ public class QtHttpClient {
 			}
 		};
 		nameValues.forEach((name,value)->{
-			request.nvps.add(new BasicNameValuePair(name, value));
+			request.formData.add(new BasicNameValuePair(name, value));
 		});
 		return post(request);
 	}
@@ -666,7 +666,7 @@ public class QtHttpClient {
 	 * @throws IOException
 	 */
 
-	private QtHttpResult getHttpResult(HttpClientContext context, CloseableHttpResponse response) throws ParseException, IOException {
+	private QtHttpResult getHttpResult(QtHttpRequest request,HttpClientContext context, CloseableHttpResponse response) throws ParseException, IOException {
 		// Once the request has been executed the local context can
 		// be used to examine updated state and various objects affected
 		// by the request execution.
@@ -689,7 +689,7 @@ public class QtHttpClient {
 		qhr.setStatusCode(response.getStatusLine().getStatusCode());
 		qhr.setHeader(response.getAllHeaders());
 		qhr.setCookieStore(context.getCookieStore());
-		qhr.setHtml(EntityUtils.toString(entity));
+		qhr.setHtml(EntityUtils.toString(entity,request.charset));
 		if(response.getAllHeaders().length>0){
 			List<Header> headers= Arrays.asList(response.getAllHeaders());
 			Header locaHeader=headers.stream().filter(x->"Location".equalsIgnoreCase(x.getName())).findFirst().orElse(null);
