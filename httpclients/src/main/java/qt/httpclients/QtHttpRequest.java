@@ -21,9 +21,9 @@ public class QtHttpRequest {
 	public int keepAlive;// 资源建立持久性连接时间
 	public boolean redirectsEnabled;// 是否自动重定向 默认 false
 	public QtHttpHeader headers;// 标头信息
-	public String postCharset;// 默认UTF-8
-	public ContentType postContentType;
-	public List<NameValuePair> nvps;// 表单提交数据,etc:username=Jack&password=123456
+	public String charset;// 默认UTF-8
+	public ContentType contentType;
+	public List<NameValuePair> formData;// 表单提交数据,etc:username=Jack&password=123456
 	public String postData;// text json xml等数据
 	public List<File> postFile;// 文件
 	public QtHttpProxy proxy;// ip代理
@@ -37,16 +37,16 @@ public class QtHttpRequest {
 		timeout = 10000;
 		keepAlive = -60000;// 如果服务器没有设置keep-alive这个参数，我们就把它设置成1分钟
 		headers = new QtHttpHeader();
-		nvps = new ArrayList<NameValuePair>();
-		postCharset = "UTF-8";
+		formData = new ArrayList<NameValuePair>();
+		charset = "UTF-8";
 		cookieStore = new BasicCookieStore();
-		if (null != postContentType) {
-			if (null != postContentType.getCharset()) {
-				postContentType.withCharset(postCharset);// (Charset.forName("UTF-8"));
+		if (null != contentType) {
+			if (null != contentType.getCharset()) {
+				contentType.withCharset(charset);// (Charset.forName("UTF-8"));
 			}
 		} else {
-			postContentType = ContentType.DEFAULT_TEXT;
-			postContentType.withCharset(postCharset);
+			contentType = ContentType.DEFAULT_TEXT;
+			contentType.withCharset(charset);
 		}
 	}
 
