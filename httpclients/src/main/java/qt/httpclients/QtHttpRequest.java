@@ -53,8 +53,7 @@ public class QtHttpRequest {
 	/**
 	 * 组合Cookie
 	 * 
-	 * @param cookies
-	 * @return
+	 * @param cookies cookies
 	 */
 	public void putCookieStores(CookieStore cookies) {
 		if (null != cookies) {

@@ -122,7 +122,10 @@ public class QtHttpClient {
 	public QtHttpClient() {
 		loadCustomHTTpClient(null);
 	}
-
+	/**
+	 * 初始化QtHttpClient
+	 * @param qtProxy qtProxy
+	 */
 	public QtHttpClient(QtHttpProxy qtProxy) {
 		HttpHost proxyHttpHost = null;
 		if (null != qtProxy) {
@@ -370,10 +373,10 @@ public class QtHttpClient {
 	/**
 	 * GET(Main)
 	 * 
-	 * @param request
-	 * @return
-	 * @throws ClientProtocolException
-	 * @throws IOException
+	 * @param request request
+	 * @return QtHttpResult
+	 * @throws ClientProtocolException ClientProtocolException
+	 * @throws IOException IOException
 	 */
 	public QtHttpResult get(QtHttpRequest request) throws ClientProtocolException, IOException {
 
@@ -421,12 +424,12 @@ public class QtHttpClient {
 	/**
 	 * GET
 	 * 
-	 * @param url
-	 * @param proxyIP
-	 * @param proxyPort
-	 * @return
-	 * @throws ClientProtocolException
-	 * @throws IOException
+	 * @param url url
+	 * @param proxyIP proxyIP
+	 * @param proxyPort proxyPort
+	 * @return QtHttpResult
+	 * @throws ClientProtocolException ClientProtocolException
+	 * @throws IOException IOException
 	 */
 	public QtHttpResult get(String url, String proxyIP, int proxyPort) throws ClientProtocolException, IOException {
 
@@ -444,10 +447,10 @@ public class QtHttpClient {
 	/**
 	 * GET
 	 * 
-	 * @param url
-	 * @return
-	 * @throws ClientProtocolException
-	 * @throws IOException
+	 * @param url url
+	 * @return QtHttpResult
+	 * @throws ClientProtocolException ClientProtocolException
+	 * @throws IOException  IOException
 	 */
 	public QtHttpResult get(String url) throws ClientProtocolException, IOException {
 
@@ -465,10 +468,10 @@ public class QtHttpClient {
 	/**
 	 * POST(main)
 	 * 
-	 * @param request
-	 * @return
-	 * @throws ClientProtocolException
-	 * @throws IOException
+	 * @param request request
+	 * @return QtHttpResult
+	 * @throws ClientProtocolException ClientProtocolException
+	 * @throws IOException IOException
 	 */
 	public QtHttpResult post(QtHttpRequest request) throws ClientProtocolException, IOException {
 		defaultKeepAliveTimeout = request.keepAlive;
@@ -559,13 +562,11 @@ public class QtHttpClient {
 
 	/**
 	 * 根据文件路径提交
-	 * 
-	 * @param url
-	 * @param otherProxyHttpHost
-	 * @param filePath
-	 * @return
-	 * @throws ClientProtocolException
-	 * @throws IOException
+	 * @param url url
+	 * @param filePaths filePaths
+	 * @throws ClientProtocolException ClientProtocolException
+	 * @throws IOException IOException
+	 * @return QtHttpResult
 	 */
 	public QtHttpResult post(String url, String... filePaths) throws ClientProtocolException, IOException {
 		List<File> files =new ArrayList<File>();
@@ -607,8 +608,8 @@ public class QtHttpClient {
 	/**
 	 * 只执行一次(注)
 	 * 
-	 * @param callBack
-	 * @throws IOException
+	 * @param callBack callBack
+	 * @throws IOException IOException
 	 */
 	public void runs(QtHttpCallBack callBack) throws IOException {
 		try {
@@ -622,10 +623,11 @@ public class QtHttpClient {
 	/**
 	 * 设置默认代理
 	 * 
-	 * @param hostName
-	 * @param port
-	 * @param userName
-	 * @param password
+	 * @param hostName hostName
+	 * @param port   port
+	 * @param userName userName
+	 * @param password password
+	 * @return QtHttpProxy
 	 */
 	public QtHttpProxy setAuthProxy(String hostName, int port, String userName, String password) {
 		defaultProxy = new QtHttpProxy(hostName, port, userName, password);
@@ -635,21 +637,21 @@ public class QtHttpClient {
 	/**
 	 * 设置代理（可以多个）
 	 * 
-	 * @param hostName
-	 * @param port
-	 * @param userName
-	 * @param password
+	 * @param hostName host地址
+	 * @param port 端口号
+	 * @param userName 账号名称
+	 * @param password 账号密码
+	 * @return QtHttpProxy
 	 */
 	public QtHttpProxy addAuthProxy(String hostName, int port, String userName, String password) {
 		QtHttpProxy qtProxy = new QtHttpProxy(hostName, port, userName, password);
 		return addAuthProxy(qtProxy);
 	}
 
-	/***
+	/**
 	 * 设置代理（可以多个）
-	 * 
-	 * @param qtProxy
-	 * @return
+	 * @param qtProxy 代理
+	 * @return QtHttpProxy
 	 */
 	public QtHttpProxy addAuthProxy(QtHttpProxy qtProxy) {
 		defaultCredentialsProvider.setCredentials(new AuthScope(qtProxy.getHostName(), qtProxy.getPort()), new UsernamePasswordCredentials(qtProxy.getUserName(), qtProxy.getPassword()));
@@ -658,14 +660,13 @@ public class QtHttpClient {
 
 	/**
 	 * 获取结果
-	 * 
-	 * @param context
-	 * @param response
-	 * @return
-	 * @throws ParseException
-	 * @throws IOException
+	 * @param request request
+	 * @param context context
+	 * @param response response
+	 * @throws ParseException ParseException
+	 * @throws IOException IOException
+	 * @return QtHttpResult
 	 */
-
 	private QtHttpResult getHttpResult(QtHttpRequest request,HttpClientContext context, CloseableHttpResponse response) throws ParseException, IOException {
 		// Once the request has been executed the local context can
 		// be used to examine updated state and various objects affected
@@ -708,7 +709,7 @@ public class QtHttpClient {
 	/**
 	 * 关闭httpclient客户端
 	 * 
-	 * @throws IOException
+	 * @throws IOException IOException
 	 */
 	private void closeHttpClient() throws IOException {
 		if (!isRun) {
