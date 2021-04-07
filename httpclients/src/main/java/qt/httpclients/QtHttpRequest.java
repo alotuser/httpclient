@@ -3,11 +3,13 @@ package qt.httpclients;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.cookie.BasicClientCookie;
 
 /***
  * 简易HTTpClient
@@ -49,7 +51,46 @@ public class QtHttpRequest {
 			contentType.withCharset(charset);
 		}
 	}
-
+	/**
+	 * 设置头
+	 * @param name name
+	 * @param value value
+	 * @return QtHttpRequest
+	 */
+	QtHttpRequest putHeader(String name, String value) {
+		this.headers.getHeaders().put(name,value);
+		return this;
+	}
+	/**
+	 * 设置头
+	 * @param headers headers
+	 * @return QtHttpRequest
+	 */
+	QtHttpRequest putHeaders(Map<String,String> headers) {
+		this.headers.getHeaders().putAll(headers);
+		return this;
+	}
+	/**
+	 * putCookies
+	 * @param name name
+	 * @param value value
+	 * @return QtHttpRequest
+	 */
+	QtHttpRequest putCookies(String name, String value) {
+        this.cookieStore.addCookie(new BasicClientCookie(name, value));
+        return this;
+    }
+	/**
+	 * putCookies
+	 * @param cookies cookies
+	 * @return QtHttpRequest
+	 */
+	QtHttpRequest putCookies(Map<String, String> cookies) {
+        for (Map.Entry<String, String> entry : cookies.entrySet()) {
+        	this.cookieStore.addCookie(new BasicClientCookie(entry.getKey(), entry.getValue()));
+        }
+        return this;
+    }
 	/**
 	 * 组合Cookie
 	 * 
