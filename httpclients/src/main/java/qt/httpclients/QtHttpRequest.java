@@ -10,6 +10,7 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.message.BasicNameValuePair;
 
 /***
  * 简易HTTpClient
@@ -51,6 +52,30 @@ public class QtHttpRequest {
 			contentType.withCharset(charset);
 		}
 	}
+	
+	/**
+	 * 填充提交参数
+	 * @param name name
+	 * @param value value
+	 * @return QtHttpRequest
+	 */
+	QtHttpRequest putFormData(String name, String value) {
+		this.formData.add(new BasicNameValuePair(name, value));
+		return this;
+	}
+	/**
+	 * 填充提交参数
+	 * @param datas datas
+	 * @return QtHttpRequest
+	 */
+	QtHttpRequest putFormDatas(Map<String,String> datas) {
+		if(null!=datas) {
+			datas.forEach((name,value)->{
+				this.formData.add(new BasicNameValuePair(name, value));
+			});
+		}
+		return this;
+	}
 	/**
 	 * 设置头
 	 * @param name name
@@ -76,7 +101,7 @@ public class QtHttpRequest {
 	 * @param value value
 	 * @return QtHttpRequest
 	 */
-	QtHttpRequest putCookies(String name, String value) {
+	QtHttpRequest putCookie(String name, String value) {
         this.cookieStore.addCookie(new BasicClientCookie(name, value));
         return this;
     }
