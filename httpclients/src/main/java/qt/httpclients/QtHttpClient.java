@@ -94,7 +94,7 @@ import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EntityUtils;
 
 /***
- * 简易HTTpClient
+ * 简易HttpClient
  * 
  * @author ChileQi
  * @since 2017年8月4日 17:15:43
@@ -120,7 +120,7 @@ public class QtHttpClient {
 	public int defaultKeepAliveTimeout;
 
 	public QtHttpClient() {
-		loadCustomHTTpClient(null);
+		loadCustomHttpClient(null);
 	}
 	/**
 	 * 初始化QtHttpClient
@@ -131,7 +131,7 @@ public class QtHttpClient {
 		if (null != qtProxy) {
 			proxyHttpHost = (new HttpHost(qtProxy.getHostName(), qtProxy.getPort()));
 		}
-		loadCustomHTTpClient(proxyHttpHost);
+		loadCustomHttpClient(proxyHttpHost);
 		if (null != qtProxy) {
 			addAuthProxy(qtProxy);
 		}
@@ -142,7 +142,7 @@ public class QtHttpClient {
 	 * 
 	 * @param proxyHttpHost 代理ip
 	 */
-	private void loadCustomHTTpClient(HttpHost defaultProxyHttpHost) {
+	private void loadCustomHttpClient(HttpHost defaultProxyHttpHost) {
 		// Use custom message parser / writer to customize the way HTTP
 		// messages are parsed from and written out to the data stream.
 		HttpMessageParserFactory<HttpResponse> responseParserFactory = new DefaultHttpResponseParserFactory() {
@@ -558,6 +558,56 @@ public class QtHttpClient {
 			closeHttpClient();
 		}
 		return qhr;
+	}
+
+
+	/**
+	 * POST提交参数
+	 * @param url url
+	 * @param nameValues nameValues
+	 * @return QtHttpResult
+	 * @throws ClientProtocolException ClientProtocolException
+	 * @throws IOException IOException
+	 */
+	public QtHttpResult post(String url,Map<String,String> nameValues) throws ClientProtocolException, IOException {
+		
+		QtHttpRequest request = new QtHttpRequest(url) {
+			{
+				timeout=200000;
+				if (null != defaultProxy) {
+					proxy = new QtHttpProxy(defaultProxy.getHostName(), defaultProxy.getPort());
+				}
+			}
+		};
+		if(null!=nameValues) {
+			nameValues.forEach((name,value)->{
+				request.formData.add(new BasicNameValuePair(name, value));
+			});
+		}
+		return post(request);
+	}
+	
+	/**
+	 * POST提交参数
+	 * @param url url
+	 * @param nameValues nameValues
+	 * @return QtHttpResult
+	 * @throws ClientProtocolException ClientProtocolException
+	 * @throws IOException IOException
+	 */
+	public QtHttpResult post(String url,String body) throws ClientProtocolException, IOException {
+		
+		QtHttpRequest request = new QtHttpRequest(url) {
+			{
+				timeout=200000;
+				postData=body;
+				if (null != defaultProxy) {
+					proxy = new QtHttpProxy(defaultProxy.getHostName(), defaultProxy.getPort());
+				}
+			}
+		};
+		
+		return post(request);
 	}
 
 	/**

@@ -3,7 +3,7 @@ package qt.httpclients;
 import java.io.Serializable;
 
 /***
- * 简易HTTpClient
+ * 简易HttpClient
  * 
  * @author ChileQi
  * @since 2017年8月4日 17:15:43
