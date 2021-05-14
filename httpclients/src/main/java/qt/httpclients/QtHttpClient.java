@@ -379,8 +379,6 @@ public class QtHttpClient {
 	 * @throws IOException IOException
 	 */
 	public QtHttpResult get(QtHttpRequest request) throws ClientProtocolException, IOException {
-
-	
 		
 		QtHttpResult qhr = new QtHttpResult();
 		defaultKeepAliveTimeout = request.keepAlive;
@@ -595,12 +593,12 @@ public class QtHttpClient {
 	 * @throws ClientProtocolException ClientProtocolException
 	 * @throws IOException IOException
 	 */
-	public QtHttpResult post(String url,String body) throws ClientProtocolException, IOException {
+	public QtHttpResult post(String url,String bodyStr) throws ClientProtocolException, IOException {
 		
 		QtHttpRequest request = new QtHttpRequest(url) {
 			{
 				timeout=200000;
-				postData=body;
+				postData=bodyStr;
 				if (null != defaultProxy) {
 					proxy = new QtHttpProxy(defaultProxy.getHostName(), defaultProxy.getPort());
 				}
