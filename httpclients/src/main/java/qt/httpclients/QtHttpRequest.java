@@ -59,7 +59,7 @@ public class QtHttpRequest {
 	 * @param value value
 	 * @return QtHttpRequest
 	 */
-	QtHttpRequest putFormData(String name, String value) {
+	public QtHttpRequest putFormData(String name, String value) {
 		this.formData.add(new BasicNameValuePair(name, value));
 		return this;
 	}
@@ -68,7 +68,7 @@ public class QtHttpRequest {
 	 * @param datas datas
 	 * @return QtHttpRequest
 	 */
-	QtHttpRequest putFormDatas(Map<String,String> datas) {
+	public QtHttpRequest putFormDatas(Map<String,String> datas) {
 		if(null!=datas) {
 			datas.forEach((name,value)->{
 				this.formData.add(new BasicNameValuePair(name, value));
@@ -77,12 +77,29 @@ public class QtHttpRequest {
 		return this;
 	}
 	/**
+	 * 填充提交参数（等同putFormData）
+	 * @param name name
+	 * @param value value
+	 * @return QtHttpRequest
+	 */
+	public QtHttpRequest putData(String name, String value) {
+		return putFormData(name,value);
+	}
+	/**
+	 * 填充提交参数（等同putFormDatas）
+	 * @param datas datas
+	 * @return QtHttpRequest
+	 */
+	public QtHttpRequest putDatas(Map<String,String> datas) {
+		return putFormDatas(datas);
+	}
+	/**
 	 * 设置头
 	 * @param name name
 	 * @param value value
 	 * @return QtHttpRequest
 	 */
-	QtHttpRequest putHeader(String name, String value) {
+	public QtHttpRequest putHeader(String name, String value) {
 		this.headers.getHeaders().put(name,value);
 		return this;
 	}
@@ -91,7 +108,7 @@ public class QtHttpRequest {
 	 * @param headers headers
 	 * @return QtHttpRequest
 	 */
-	QtHttpRequest putHeaders(Map<String,String> headers) {
+	public QtHttpRequest putHeaders(Map<String,String> headers) {
 		this.headers.getHeaders().putAll(headers);
 		return this;
 	}
@@ -101,7 +118,7 @@ public class QtHttpRequest {
 	 * @param value value
 	 * @return QtHttpRequest
 	 */
-	QtHttpRequest putCookie(String name, String value) {
+	public QtHttpRequest putCookie(String name, String value) {
         this.cookieStore.addCookie(new BasicClientCookie(name, value));
         return this;
     }
@@ -110,7 +127,7 @@ public class QtHttpRequest {
 	 * @param cookies cookies
 	 * @return QtHttpRequest
 	 */
-	QtHttpRequest putCookies(Map<String, String> cookies) {
+	public QtHttpRequest putCookies(Map<String, String> cookies) {
         for (Map.Entry<String, String> entry : cookies.entrySet()) {
         	this.cookieStore.addCookie(new BasicClientCookie(entry.getKey(), entry.getValue()));
         }
