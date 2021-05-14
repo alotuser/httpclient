@@ -584,6 +584,15 @@ public class QtHttpClient {
 		};
 		return post(request);
 	}
+	/**
+	 * 根据文件路径和参数提交
+	 * @param url url
+	 * @param nameValues nameValues
+	 * @param filePaths filePaths
+	 * @return QtHttpResult
+	 * @throws ClientProtocolException ClientProtocolException
+	 * @throws IOException IOException
+	 */
 	public QtHttpResult post(String url,Map<String,String> nameValues,String... filePaths) throws ClientProtocolException, IOException {
 		List<File> files =new ArrayList<File>();
 		
