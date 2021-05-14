@@ -62,7 +62,7 @@ public class QtFilesRequest extends QtHttpRequest {
 
 		super.postFile = files;
 		this.datas.forEach((name, value) -> {
-			this.formData.add(new BasicNameValuePair(name, value));
+			super.formData.add(new BasicNameValuePair(name, value));
 		});
 		return this;
 	}
