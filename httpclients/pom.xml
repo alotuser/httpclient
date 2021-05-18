@@ -5,7 +5,7 @@
 
 	<groupId>com.github.alotuser</groupId>
 	<artifactId>httpclients</artifactId>
-	<version>1.0.3</version>
+	<version>1.7.1</version>
 	<packaging>jar</packaging>
 
 	<name>httpclients</name>
