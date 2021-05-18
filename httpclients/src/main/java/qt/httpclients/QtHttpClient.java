@@ -586,7 +586,7 @@ public class QtHttpClient {
 	/**
 	 * POST提交参数
 	 * @param url url
-	 * @param nameValues nameValues
+	 * @param bodyStr bodyStr
 	 * @return QtHttpResult
 	 * @throws ClientProtocolException ClientProtocolException
 	 * @throws IOException IOException
