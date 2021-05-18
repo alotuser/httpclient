@@ -7,6 +7,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -291,7 +292,6 @@ public class QtHttpClient {
 																		 .build();  
 		// Use custom DNS resolver to override the system DNS resolution.
 		DnsResolver dnsResolver = new SystemDefaultDnsResolver() {
-
 			@Override
 			public InetAddress[] resolve(final String host) throws UnknownHostException {
 				if (host.equalsIgnoreCase("myhost")) {
@@ -300,7 +300,6 @@ public class QtHttpClient {
 					return super.resolve(host);
 				}
 			}
-
 		};
 
 		// Create a connection manager with custom configuration.
@@ -355,7 +354,7 @@ public class QtHttpClient {
 	
 		
 		//Lookup<CookieSpecProvider> cookieSpecRegistry=new Lookup<CookieSpecProvider>() {public CookieSpecProvider lookup(String s) {System.out.println(s);return null;}};
-		// Create an HttpClient with the given custom dependencies and configuration.
+		//Create an HttpClient with the given custom dependencies and configuration.
 	
 		httpclient = HttpClients.custom()
 				.setConnectionManager(defaultConnManager)
@@ -519,7 +518,6 @@ public class QtHttpClient {
 				// Post files
 				MultipartEntityBuilder multipartEntityBuilder=MultipartEntityBuilder.create();
 				request.postFile.forEach(file->{multipartEntityBuilder.addBinaryBody(file.getName(), file);});
-				
 				if(null != nvps && !nvps.isEmpty()){
 					nvps.forEach(nvp->{multipartEntityBuilder.addPart(nvp.getName(), new StringBody(nvp.getValue(), contentType));});
 				}
@@ -617,20 +615,7 @@ public class QtHttpClient {
 	 * @return QtHttpResult
 	 */
 	public QtHttpResult post(String url, String... filePaths) throws ClientProtocolException, IOException {
-		List<File> files =new ArrayList<File>();
-		for (String filePath : filePaths) {
-			files.add(new File(filePath));
-		}
-		QtHttpRequest request = new QtHttpRequest(url) {
-			{
-				postFile = files;
-				timeout=200000;
-				if (null != defaultProxy) {
-					proxy = new QtHttpProxy(defaultProxy.getHostName(), defaultProxy.getPort());
-				}
-			}
-		};
-		return post(request);
+		return post(url,null,filePaths);
 	}
 	/**
 	 * 根据文件路径和参数提交
@@ -643,23 +628,50 @@ public class QtHttpClient {
 	 */
 	public QtHttpResult post(String url,Map<String,String> nameValues,String... filePaths) throws ClientProtocolException, IOException {
 		List<File> files =new ArrayList<File>();
-		
 		for (String filePath : filePaths) {
 			files.add(new File(filePath));
 		}
+		return post(url,nameValues,files);
+	}
+
+	/**
+	 * 根据文件路径和参数提交
+	 * @param url url
+	 * @param nameValues nameValues
+	 * @param files files
+	 * @return QtHttpResult
+	 * @throws ClientProtocolException ClientProtocolException
+	 * @throws IOException IOException
+	 */
+	public QtHttpResult post(String url,Map<String,String> nameValues,Collection<? extends File> files) throws ClientProtocolException, IOException {
+		
 		QtHttpRequest request = new QtHttpRequest(url) {
 			{
-				postFile = files;
+				postFile =files;
 				timeout=200000;
 				if (null != defaultProxy) {
 					proxy = new QtHttpProxy(defaultProxy.getHostName(), defaultProxy.getPort());
 				}
 			}
 		};
-		nameValues.forEach((name,value)->{
-			request.formData.add(new BasicNameValuePair(name, value));
-		});
+		
+		if(nameValues!=null)
+			nameValues.forEach((name,value)->{request.formData.add(new BasicNameValuePair(name, value));});
+		
 		return post(request);
+	}
+
+	/**
+	 * 根据文件路径和参数提交
+	 * @param url url
+	 * @param nameValues nameValues
+	 * @param files files
+	 * @return QtHttpResult
+	 * @throws ClientProtocolException ClientProtocolException
+	 * @throws IOException IOException
+	 */
+	public QtHttpResult post(String url,Map<String,String> nameValues,File... files) throws ClientProtocolException, IOException {
+		return post(url,nameValues,files);
 	}
 
 	/**

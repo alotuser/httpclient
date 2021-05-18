@@ -2,6 +2,7 @@ package qt.httpclients;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +29,7 @@ public class QtHttpRequest {
 	public ContentType contentType;
 	public List<NameValuePair> formData;// 表单提交数据,etc:username=Jack&password=123456
 	public String postData;// text json xml等数据
-	public List<File> postFile;// 文件
+	public Collection<? extends File> postFile;// 文件
 	public QtHttpProxy proxy;// ip代理
 	public CookieStore cookieStore;
 	private int socketTimeout;// 默认请求超时时间
