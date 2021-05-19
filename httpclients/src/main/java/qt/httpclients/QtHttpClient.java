@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.net.ssl.SSLContext;
-
 import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -48,7 +46,9 @@ import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.cookie.Cookie;
@@ -89,10 +89,13 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.message.LineParser;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EntityUtils;
+
+import qt.httpclients.ext.QtDefaultClient;
 
 /***
  * 简易HttpClient
@@ -109,9 +112,11 @@ public class QtHttpClient {
 	private CredentialsProvider defaultCredentialsProvider;
 	private RequestConfig defaultRequestConfig;
 	private QtHttpProxy defaultProxy;
-	private CloseableHttpClient httpclient;
 	private String defaultCookieType="easy";
+	private CloseableHttpClient httpclient;
+	private QtHttpProxy qtProxy; 
 	private boolean isRun = false;
+	public boolean isIgnoeSSL=true;
 	public int defaultMaxTotal = 1000;
 	public int defaultMaxPerRoute = 10;
 	public int maxPerRoute = 20;
@@ -120,30 +125,53 @@ public class QtHttpClient {
 	public int defaultConnectionRequestTimeout = 5000;
 	public int defaultKeepAliveTimeout;
 
+	
 	public QtHttpClient() {
-		loadCustomHttpClient(null);
+		httpclient=customHttpClient(null);
 	}
+	
+	public QtHttpClient(QtDefaultClient defaultClient) {
+		
+	}
+	
 	/**
 	 * 初始化QtHttpClient
 	 * @param qtProxy qtProxy
 	 */
 	public QtHttpClient(QtHttpProxy qtProxy) {
+		this.qtProxy=qtProxy;
 		HttpHost proxyHttpHost = null;
 		if (null != qtProxy) {
 			proxyHttpHost = (new HttpHost(qtProxy.getHostName(), qtProxy.getPort()));
 		}
-		loadCustomHttpClient(proxyHttpHost);
+		httpclient=customHttpClient(proxyHttpHost);
 		if (null != qtProxy) {
 			addAuthProxy(qtProxy);
 		}
 	}
-
+	
+	public static QtHttpClient create() {
+		return new QtHttpClient(QtDefaultClient.empty());
+	}
+	
+	public QtHttpClient build() {
+		HttpHost proxyHttpHost = null;
+		if (null != qtProxy) {
+			proxyHttpHost = (new HttpHost(qtProxy.getHostName(), qtProxy.getPort()));
+		}
+		httpclient=customHttpClient(proxyHttpHost);
+		if (null != qtProxy) {
+			addAuthProxy(qtProxy);
+		}
+		return this;
+	}
+	
 	/**
-	 * 初始化方法
+	 * 自定义方法
 	 * 
 	 * @param proxyHttpHost 代理ip
 	 */
-	private void loadCustomHttpClient(HttpHost defaultProxyHttpHost) {
+	private CloseableHttpClient customHttpClient(final HttpHost defaultProxyHttpHost) {
 		// Use custom message parser / writer to customize the way HTTP
 		// messages are parsed from and written out to the data stream.
 		HttpMessageParserFactory<HttpResponse> responseParserFactory = new DefaultHttpResponseParserFactory() {
@@ -189,13 +217,23 @@ public class QtHttpClient {
 
 		// SSL context for secure connections can be created either based on
 		// system or application specific properties.
-		SSLContext sslcontext = SSLContexts.createSystemDefault();
-
+		SSLConnectionSocketFactory sslConnectionSocketFactorys;
+		if(isIgnoeSSL) {
+			try {
+				//SSLContext sslcontext=SSLContextBuilder.create().loadTrustMaterial(null, new TrustAllStrategy()).build();
+				sslConnectionSocketFactorys=new SSLConnectionSocketFactory(SSLContextBuilder.create().loadTrustMaterial(null, new TrustAllStrategy()).build(),NoopHostnameVerifier.INSTANCE);
+			} catch (Exception e) {//注意：走默认方式
+				sslConnectionSocketFactorys=new SSLConnectionSocketFactory(SSLContexts.createDefault());
+			}
+		}else {
+			sslConnectionSocketFactorys=new SSLConnectionSocketFactory(SSLContexts.createDefault());
+		}
+		
 		// Create a registry of custom connection socket factories for supported
 		// protocol schemes.
 		Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-																				 .register("http", PlainConnectionSocketFactory.INSTANCE)
-																				 .register("https", new SSLConnectionSocketFactory(sslcontext))
+																				 .register("http" , PlainConnectionSocketFactory.INSTANCE)
+																				 .register("https", sslConnectionSocketFactorys)
 																				 .build();
 		//BrowserCompatSpec
 		CookieSpecProvider easySpecProvider = new CookieSpecProvider() {
@@ -285,7 +323,7 @@ public class QtHttpClient {
 			}};
 		PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.getDefault();  
 		// Create a registry of custom cookie for supported
-		Registry<CookieSpecProvider> cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
+		final Registry<CookieSpecProvider> defaultCookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
 																		 .register(CookieSpecs.DEFAULT,(CookieSpecProvider) new DefaultCookieSpecProvider(publicSuffixMatcher))  
 																		 .register(CookieSpecs.STANDARD,new RFC6265CookieSpecProvider(publicSuffixMatcher))  
 																		 .register(defaultCookieType, easySpecProvider)  
@@ -355,16 +393,16 @@ public class QtHttpClient {
 		
 		//Lookup<CookieSpecProvider> cookieSpecRegistry=new Lookup<CookieSpecProvider>() {public CookieSpecProvider lookup(String s) {System.out.println(s);return null;}};
 		//Create an HttpClient with the given custom dependencies and configuration.
-	
-		httpclient = HttpClients.custom()
+		
+		return HttpClients.custom()
 				.setConnectionManager(defaultConnManager)
-				.setDefaultCookieSpecRegistry(cookieSpecRegistry)
+				.setDefaultRequestConfig(defaultRequestConfig)
+				.setDefaultCookieSpecRegistry(defaultCookieSpecRegistry)
 				.setDefaultCookieStore(defaultCookieStore)
+				.setDefaultCredentialsProvider(defaultCredentialsProvider)
 				.setKeepAliveStrategy(defaultKeepAliveStrategy)
 				.setUserAgent(defaultUserAgent)
-				.setDefaultCredentialsProvider(defaultCredentialsProvider)
 				.setProxy(defaultProxyHttpHost)
-				.setDefaultRequestConfig(defaultRequestConfig)
 				.build();
 
 	}
