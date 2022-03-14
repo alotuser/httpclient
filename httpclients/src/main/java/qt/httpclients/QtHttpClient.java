@@ -66,6 +66,7 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultHttpResponseParser;
 import org.apache.http.impl.conn.DefaultHttpResponseParserFactory;
@@ -96,6 +97,10 @@ import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EntityUtils;
 
 import qt.httpclients.ext.QtDefaultClient;
+import qt.httpclients.ext.enums.ResultType;
+import qt.httpclients.ext.strategy.QtLinkedRedirectStrategy;
+import qt.httpclients.ext.strategy.QtDefaultRedirectStrategy;
+import qt.httpclients.util.IOUtil;
 
 /***
  * 简易HttpClient
@@ -125,13 +130,15 @@ public class QtHttpClient {
 	public int defaultConnectionRequestTimeout = 5000;
 	public int defaultKeepAliveTimeout;
 
+	private QtDefaultClient qtDefaultClient;
 	
 	public QtHttpClient() {
 		httpclient=customHttpClient(null);
 	}
 	
 	public QtHttpClient(QtDefaultClient defaultClient) {
-		
+		this.qtDefaultClient=defaultClient;
+		httpclient=customHttpClient(null);
 	}
 	
 	/**
@@ -393,8 +400,7 @@ public class QtHttpClient {
 		
 		//Lookup<CookieSpecProvider> cookieSpecRegistry=new Lookup<CookieSpecProvider>() {public CookieSpecProvider lookup(String s) {System.out.println(s);return null;}};
 		//Create an HttpClient with the given custom dependencies and configuration.
-		
-		return HttpClients.custom()
+		HttpClientBuilder defaultHttpClientBuilder=HttpClients.custom()
 				.setConnectionManager(defaultConnManager)
 				.setDefaultRequestConfig(defaultRequestConfig)
 				.setDefaultCookieSpecRegistry(defaultCookieSpecRegistry)
@@ -402,9 +408,20 @@ public class QtHttpClient {
 				.setDefaultCredentialsProvider(defaultCredentialsProvider)
 				.setKeepAliveStrategy(defaultKeepAliveStrategy)
 				.setUserAgent(defaultUserAgent)
-				.setProxy(defaultProxyHttpHost)
-				.build();
-
+				.setProxy(defaultProxyHttpHost);
+		
+		if(null!=qtDefaultClient&&qtDefaultClient.referers!=null) {
+			switch (qtDefaultClient.referers) {
+			case DEFAULT:
+				defaultHttpClientBuilder.setRedirectStrategy(new QtDefaultRedirectStrategy());
+				break;
+			case LINKED:
+			default:
+				defaultHttpClientBuilder.setRedirectStrategy(new QtLinkedRedirectStrategy());
+				break;
+			}
+		}
+		return defaultHttpClientBuilder.build();
 	}
 
 	/**
@@ -429,7 +446,13 @@ public class QtHttpClient {
 			HttpGet httpget = new HttpGet(url);
 			// Request configuration can be overridden at the request level.
 			// They will take precedence over the one set at the client level.
-			RequestConfig requestConfig = RequestConfig.copy(defaultRequestConfig).setSocketTimeout(request.getSocketTimeout()).setConnectTimeout(request.getConnectTimeout()).setConnectionRequestTimeout(request.getConnectionRequestTimeout()).setProxy(otherProxyHttpHost).setRedirectsEnabled(request.redirectsEnabled).setCookieSpec(defaultCookieType).build();
+			RequestConfig requestConfig = RequestConfig.copy(defaultRequestConfig)
+					.setSocketTimeout(request.getSocketTimeout())
+					.setConnectTimeout(request.getConnectTimeout())
+					.setConnectionRequestTimeout(request.getConnectionRequestTimeout())
+					.setProxy(otherProxyHttpHost)
+					.setRedirectsEnabled(request.redirectsEnabled)
+					.setCookieSpec(defaultCookieType).build();
 			httpget.setConfig(requestConfig);
 			request.headers.getHeaders().forEach((key, value) -> {
 				httpget.addHeader(key, value);
@@ -797,7 +820,11 @@ public class QtHttpClient {
 		qhr.setStatusCode(response.getStatusLine().getStatusCode());
 		qhr.setHeader(response.getAllHeaders());
 		qhr.setCookieStore(context.getCookieStore());
-		qhr.setHtml(EntityUtils.toString(entity,request.charset));
+		if(request.getResultType()==ResultType.Byte) {
+			qhr.setResultByte(IOUtil.toByteArray(entity.getContent()));
+		}else {
+			qhr.setHtml(EntityUtils.toString(entity,request.charset));
+		}
 		if(response.getAllHeaders().length>0){
 			List<Header> headers= Arrays.asList(response.getAllHeaders());
 			Header locaHeader=headers.stream().filter(x->"Location".equalsIgnoreCase(x.getName())).findFirst().orElse(null);
@@ -806,8 +833,6 @@ public class QtHttpClient {
 			}
 		}
 		qhr.redirectLocations=context.getRedirectLocations();
-		//
-		
 		
 		EntityUtils.consume(entity);
 		return qhr;

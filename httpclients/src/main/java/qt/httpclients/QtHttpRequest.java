@@ -13,6 +13,8 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
 
+import qt.httpclients.ext.enums.ResultType;
+
 /***
  * 简易HttpClient
  * 
@@ -32,6 +34,7 @@ public class QtHttpRequest {
 	public Collection<? extends File> postFile;// 文件
 	public QtHttpProxy proxy;// ip代理
 	public CookieStore cookieStore;
+	public ResultType resultType;
 	private int socketTimeout;// 默认请求超时时间
 	private int connectTimeout;// 默认请求超时时间
 	private int connectionRequestTimeout;// 默认请求超时时间
@@ -196,6 +199,110 @@ public class QtHttpRequest {
 
 	public void setConnectionRequestTimeout(int connectionRequestTimeout) {
 		this.connectionRequestTimeout = connectionRequestTimeout;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public int getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+	}
+
+	public int getKeepAlive() {
+		return keepAlive;
+	}
+
+	public void setKeepAlive(int keepAlive) {
+		this.keepAlive = keepAlive;
+	}
+
+	public boolean isRedirectsEnabled() {
+		return redirectsEnabled;
+	}
+
+	public void setRedirectsEnabled(boolean redirectsEnabled) {
+		this.redirectsEnabled = redirectsEnabled;
+	}
+
+	public QtHttpHeader getHeaders() {
+		return headers;
+	}
+
+	public void setHeaders(QtHttpHeader headers) {
+		this.headers = headers;
+	}
+
+	public String getCharset() {
+		return charset;
+	}
+
+	public void setCharset(String charset) {
+		this.charset = charset;
+	}
+
+	public ContentType getContentType() {
+		return contentType;
+	}
+
+	public void setContentType(ContentType contentType) {
+		this.contentType = contentType;
+	}
+
+	public List<NameValuePair> getFormData() {
+		return formData;
+	}
+
+	public void setFormData(List<NameValuePair> formData) {
+		this.formData = formData;
+	}
+
+	public String getPostData() {
+		return postData;
+	}
+
+	public void setPostData(String postData) {
+		this.postData = postData;
+	}
+
+	public Collection<? extends File> getPostFile() {
+		return postFile;
+	}
+
+	public void setPostFile(Collection<? extends File> postFile) {
+		this.postFile = postFile;
+	}
+
+	public QtHttpProxy getProxy() {
+		return proxy;
+	}
+
+	public void setProxy(QtHttpProxy proxy) {
+		this.proxy = proxy;
+	}
+
+	public CookieStore getCookieStore() {
+		return cookieStore;
+	}
+
+	public void setCookieStore(CookieStore cookieStore) {
+		this.cookieStore = cookieStore;
+	}
+
+	public ResultType getResultType() {
+		return resultType;
+	}
+
+	public void setResultType(ResultType resultType) {
+		this.resultType = resultType;
 	}
 
 }
