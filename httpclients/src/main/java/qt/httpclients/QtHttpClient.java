@@ -8,6 +8,7 @@ import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -636,7 +637,11 @@ public class QtHttpClient {
 	 * @throws IOException IOException
 	 */
 	public QtHttpResult post(String url,Map<String,String> nameValues,File... files) throws ClientProtocolException, IOException {
-		return post(url,nameValues,files);
+		
+		final List<File> arrayList =  new ArrayList<>(files.length);
+		Collections.addAll(arrayList, files);
+		
+		return post(url,nameValues, arrayList);
 	}
 
 	/**
