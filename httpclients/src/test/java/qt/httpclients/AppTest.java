@@ -27,6 +27,7 @@ public class AppTest extends TestCase {
 		return new TestSuite(AppTest.class);
 	}
 
+	 
 	/**
 	 * Rigourous Test :-)
 	 */
@@ -34,6 +35,7 @@ public class AppTest extends TestCase {
 		assertTrue(true);
 	}
 
+ 
 	public static void main(String[] args) {
 		//
 		String testUri = "http://666.33.33.666/getIp.ashx";
@@ -42,6 +44,8 @@ public class AppTest extends TestCase {
 		String proxyUsername = "";
 		String proxyPassword = "";
 
+		
+		
 		// 普通Get请求
 		try {
 			QtHttpClient qt = new QtHttpClient();
@@ -56,9 +60,17 @@ public class AppTest extends TestCase {
 		// 代理Get请求
 		try {
 			QtHttpClient qt = new QtHttpClient();
+			qt.setAuthProxy("10.10.0.177", 8088);// 设置默认代理
+			QtHttpResult qhr = qt.get("https://hc.apache.org/httpcomponents-client-5.2.x/");
+			System.out.println("<1>:" + qhr.html);
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
+		try {
+			QtHttpClient qt = new QtHttpClient();
 			qt.setAuthProxy(proxyIP, port, proxyUsername, proxyPassword);// 设置默认代理
 			QtHttpResult qhr = qt.get(testUri);
-			System.out.println("<1>:" + qhr.html);
+			System.out.println("<1.1>:" + qhr.html);
 		} catch (Exception e1) {
 			e1.printStackTrace();
 		}
@@ -94,8 +106,7 @@ public class AppTest extends TestCase {
 			nvs.put("xx", "xxxxxxx");
 			QtHttpClient qt = new QtHttpClient();
 			// QtHttpResult qhr =
-			// qt.post("http://localhost:8080/OPS/ImportShopAircomConfig.htm",
-			// nvs,"D:\\shopAircomConfig.xls");
+			// qt.post("http://localhost:8080/OPS/ImportShopAircomConfig.htm",nvs,"D:\\shopAircomConfig.xls");
 			// System.out.println("<3>:" + qhr.html);
 		} catch (Exception e1) {
 			e1.printStackTrace();
