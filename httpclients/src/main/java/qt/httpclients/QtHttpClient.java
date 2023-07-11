@@ -750,6 +750,12 @@ public class QtHttpClient {
 		}
 	}
 
+	
+	public QtHttpProxy setAuthProxy(String hostName, int port) {
+		defaultProxy = new QtHttpProxy(hostName, port);
+		return addAuthProxy(defaultProxy);
+	}
+	
 	/**
 	 * 设置默认代理
 	 * 
@@ -784,7 +790,9 @@ public class QtHttpClient {
 	 * @return QtHttpProxy
 	 */
 	public QtHttpProxy addAuthProxy(QtHttpProxy qtProxy) {
-		defaultCredentialsProvider.setCredentials(new AuthScope(qtProxy.getHostName(), qtProxy.getPort()), new UsernamePasswordCredentials(qtProxy.getUserName(), qtProxy.getPassword()));
+		if(null!=qtProxy.getUserName()&&qtProxy.getUserName().length()>0) {
+			defaultCredentialsProvider.setCredentials(new AuthScope(qtProxy.getHostName(), qtProxy.getPort()), new UsernamePasswordCredentials(qtProxy.getUserName(), qtProxy.getPassword()));
+		}
 		return qtProxy;
 	}
 
