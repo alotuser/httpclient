@@ -9,12 +9,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import org.apache.http.Consts;
 import org.apache.http.Header;
-import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -51,12 +49,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
-import org.apache.http.cookie.Cookie;
-import org.apache.http.cookie.CookieAttributeHandler;
-import org.apache.http.cookie.CookieOrigin;
-import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecProvider;
-import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -73,8 +66,6 @@ import org.apache.http.impl.conn.DefaultHttpResponseParserFactory;
 import org.apache.http.impl.conn.ManagedHttpClientConnectionFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultDnsResolver;
-import org.apache.http.impl.cookie.BasicClientCookie;
-import org.apache.http.impl.cookie.CookieSpecBase;
 import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
 import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.http.impl.io.DefaultHttpRequestWriterFactory;
@@ -83,23 +74,20 @@ import org.apache.http.io.HttpMessageParserFactory;
 import org.apache.http.io.HttpMessageWriterFactory;
 import org.apache.http.io.SessionInputBuffer;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHeaderElement;
-import org.apache.http.message.BasicHeaderValueFormatter;
 import org.apache.http.message.BasicLineParser;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.message.BufferedHeader;
 import org.apache.http.message.LineParser;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
-import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EntityUtils;
 
 import qt.httpclients.ext.QtDefaultClient;
 import qt.httpclients.ext.enums.ResultType;
-import qt.httpclients.ext.strategy.QtLinkedRedirectStrategy;
+import qt.httpclients.ext.provider.QtCookieSpecProvider;
 import qt.httpclients.ext.strategy.QtDefaultRedirectStrategy;
+import qt.httpclients.ext.strategy.QtLinkedRedirectStrategy;
 import qt.httpclients.util.IOUtil;
 
 /***
@@ -243,91 +231,7 @@ public class QtHttpClient {
 																				 .register("https", sslConnectionSocketFactorys)
 																				 .build();
 		//BrowserCompatSpec
-		CookieSpecProvider easySpecProvider = new CookieSpecProvider() {
-			public CookieSpec create(HttpContext httpcontext) {
-				return new CookieSpecBase() {
-					
-					public List<Cookie> parse(Header header, CookieOrigin origin) throws MalformedCookieException {
-						final HeaderElement[] elems=header.getElements();
-						final List<Cookie> cookies = new ArrayList<Cookie>(elems.length);
-	                    for (final HeaderElement headerelement : elems) {
-	                        final String name = headerelement.getName();
-	                        final String value = headerelement.getValue();
-	                        if (value == null) {
-	                            continue;
-	                        }
-	                        if (name == null || name.length() == 0) {
-	                            throw new MalformedCookieException("Cookie name may not be empty");
-	                        }
-
-	                        final BasicClientCookie cookie = new BasicClientCookie(name, value);
-	                        cookie.setPath(getDefaultPath(origin));
-	                        cookie.setDomain(getDefaultDomain(origin));
-
-	                        // cycle through the parameters
-	                        final NameValuePair[] attribs = headerelement.getParameters();
-	                        for (int j = attribs.length - 1; j >= 0; j--) {
-	                            final NameValuePair attrib = attribs[j];
-	                            final String s = attrib.getName().toLowerCase(Locale.ENGLISH);
-
-	                            cookie.setAttribute(s, attrib.getValue());
-
-	                            final CookieAttributeHandler handler = findAttribHandler(s);
-	                            if (handler != null) {
-	                                handler.parse(cookie, attrib.getValue());
-	                            }
-	                        }
-	                        cookies.add(cookie);
-	                    }
-	                    return cookies;
-					
-					}
-
-					private boolean isQuoteEnclosed(String s) {
-						return s != null && s.startsWith("\"") && s.endsWith("\"");
-					}
-
-					public List<Header> formatCookies(List<Cookie> cookies) {
-						Args.notEmpty(cookies, "List of cookies");
-						CharArrayBuffer buffer = new CharArrayBuffer(20 * cookies.size());
-						buffer.append("Cookie");
-						buffer.append(": ");
-						for (int i = 0; i < cookies.size(); i++) {
-							Cookie cookie = (Cookie) cookies.get(i);
-							if (i > 0)
-								buffer.append("; ");
-							String cookieName = cookie.getName();
-							String cookieValue = cookie.getValue();
-							if (cookie.getVersion() > 0 && !isQuoteEnclosed(cookieValue)) {
-								BasicHeaderValueFormatter.INSTANCE.formatHeaderElement(buffer, new BasicHeaderElement(cookieName, cookieValue), false);
-								continue;
-							}
-							buffer.append(cookieName);
-							buffer.append("=");
-							if (cookieValue != null)
-								buffer.append(cookieValue);
-						}
-
-						List<Header> headers = new ArrayList<Header>(1);
-						headers.add(new BufferedHeader(buffer));
-						return headers;
-					}
-
-					public int getVersion() {
-						return 0;
-					}
-
-					public Header getVersionHeader() {
-						return null;
-					}
-
-					public String toString() {
-						return "compatibility";
-					}
-					
-					
-				}; 
-			}};
+		CookieSpecProvider easySpecProvider = new QtCookieSpecProvider();
 		PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.getDefault();  
 		// Create a registry of custom cookie for supported
 		final Registry<CookieSpecProvider> defaultCookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
@@ -335,7 +239,7 @@ public class QtHttpClient {
 																		 .register(CookieSpecs.STANDARD,new RFC6265CookieSpecProvider(publicSuffixMatcher))  
 																		 .register(defaultCookieType, easySpecProvider)  
 																		 .build();  
-		// Use custom DNS resolver to override the system DNS resolution.
+		// Use custom DNS resolver to override the system DNS resolution. $$$
 		DnsResolver dnsResolver = new SystemDefaultDnsResolver() {
 			@Override
 			public InetAddress[] resolve(final String host) throws UnknownHostException {
@@ -560,12 +464,10 @@ public class QtHttpClient {
 			httppost.setConfig(requestConfig);
 			// Header
 			if (null != request.headers) {
-				request.headers.getHeaders().forEach((key, value) -> {
-					httppost.addHeader(key, value);
-				});
+				request.headers.getHeaders().forEach(httppost::setHeader);
 			}
 			
-			//
+			//File
 			if (null != request.postFile&&!request.postFile.isEmpty()) {
 				/*InputStreamEntity reqEntity = new InputStreamEntity(new FileInputStream(request.postFile), -1, ContentType.APPLICATION_OCTET_STREAM);
 				reqEntity.setChunked(true);
@@ -578,6 +480,8 @@ public class QtHttpClient {
 				httppost.setEntity(reqEntity);*/
 				// Post files
 				MultipartEntityBuilder multipartEntityBuilder=MultipartEntityBuilder.create();
+				
+				
 				request.postFile.forEach(file->{multipartEntityBuilder.addBinaryBody(file.getName(), file);});
 				if(null != nvps && !nvps.isEmpty()){
 					nvps.forEach(nvp->{multipartEntityBuilder.addPart(nvp.getName(), new StringBody(nvp.getValue(), contentType));});
@@ -750,7 +654,12 @@ public class QtHttpClient {
 		}
 	}
 
-	
+	/**
+	 * 设置默认代理
+	 * @param hostName
+	 * @param port
+	 * @return
+	 */
 	public QtHttpProxy setAuthProxy(String hostName, int port) {
 		defaultProxy = new QtHttpProxy(hostName, port);
 		return addAuthProxy(defaultProxy);
