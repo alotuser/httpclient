@@ -9,6 +9,15 @@ public class QtDefaultClient {
 	public static QtDefaultClient empty() {
 		return new QtDefaultClient();
 	}
+
+	public QtDefaultClient(Referers referers) {
+		super();
+		this.referers = referers;
+	}
+
+	public QtDefaultClient() {
+		super();
+	}
 	
 	
 	
